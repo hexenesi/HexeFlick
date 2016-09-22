@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">HexeFlick</string>
+    <string name="action_reload">Reload</string>
+    <string name="action_favorites">Favorites</string>
+    <string name="action_search">Buscar</string>
+    <string name="download">https://farm%1$d.staticflickr.com/%2$s/%3$s_%4$s_%5$s.jpg</string>
+    <string name="speech_prompt">Di una palabra</string>
+    <string name="speech_not_supported">Reconocimiento no soportado</string>
+</resources>
