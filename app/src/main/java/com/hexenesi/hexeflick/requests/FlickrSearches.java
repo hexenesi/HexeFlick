@@ -21,7 +21,7 @@ import de.greenrobot.event.EventBus;
 
 public class FlickrSearches {
 
-    private static final String key = "fxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1";
+    private static final String key = "fxxxxxxxxxxxxxxxxxxxxx1";
     public static final String RECENTS = "https://api.flickr.com/services/rest/?method=flickr.photos.getRecent&api_key=" + key + "&format=json&nojsoncallback=1";
     public static final String SEARCHTAG = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=" + key + "&tags=%1$s&format=json&nojsoncallback=1";
 
@@ -30,7 +30,7 @@ public class FlickrSearches {
     public void get(String url, final Class<?> clase) {
         Request request = new Request.Builder()
                 .url(url)
-                .header("User-Agent", "OkHttp Headers.java")
+                .header("User-Agent", "OkHttp")
                 .addHeader("Accept", "application/json; q=0.5")
                 .build();
 
@@ -49,8 +49,6 @@ public class FlickrSearches {
                         String string = response.body().string();
                         if (clase != null) {
                             Gson gson = new Gson();
-                            Log.d("Resultado", string);
-
                             try {
                                 EventBus.getDefault().post(new SearchEvent(gson.fromJson(string,Photos.class)));
                             } catch (JsonSyntaxException | IllegalStateException e) {
