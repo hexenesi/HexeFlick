@@ -20,13 +20,12 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.hexenesi.hexeflick.events.MessageEvent;
 import com.hexenesi.hexeflick.events.ReloadEvent;
 import com.hexenesi.hexeflick.events.SearchEvent;
 import com.hexenesi.hexeflick.model.Photo;
 import com.hexenesi.hexeflick.model.Photos;
+import com.hexenesi.hexeflick.requests.FlickrSearches;
 import com.hexenesi.hexeflick.transformers.ParallaxPageTransformer;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -34,12 +33,7 @@ import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -51,36 +45,30 @@ import it.sephiroth.android.library.imagezoom.ImageViewTouchBase;
 
 public class FullPhotoFragment extends Fragment {
 
-    private static final String key = "fxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1";
-    private static final String RECENTS = "https://api.flickr.com/services/rest/?method=flickr.photos.getRecent&api_key=" + key + "&format=json&nojsoncallback=1";
-    private static final String LANDSCAPES = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=" + key + "&tags=landscape&format=json&nojsoncallback=1";
-    private static final String SEARCHTAG = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=" + key + "&tags=%1$s&format=json&nojsoncallback=1";
-    private static final OkHttpClient client = new OkHttpClient();
+    private FlickrSearches search;
     private ViewPager pager;
-    private ImageView prevImage;
-    private ImageView nextImage;
     private ToggleButton favorite;
     private DisplayImageOptions options;
-    private Photos photos;
     private List<Photo> images;
     private ImageAdapter adapter;
+
+    private CompoundButton.OnCheckedChangeListener listener;
     private final Handler handler = new Handler() {
         @Override
         public void dispatchMessage(Message msg) {
             if (msg.what != -1) {
-
                 adapter.notifyDataSetChanged();
                 pager.setCurrentItem(0);
             }
         }
     };
-    private CompoundButton.OnCheckedChangeListener listener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         //super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_full_photo);
         View root = inflater.inflate(R.layout.activity_full_photo, container, false);
+        search=new FlickrSearches();
         options = new DisplayImageOptions.Builder()
                 .showImageForEmptyUri(R.drawable.ic_empty)
                 .showImageOnFail(R.drawable.ic_error)
@@ -93,8 +81,6 @@ public class FullPhotoFragment extends Fragment {
                 .build();
 
         pager = (ViewPager) root.findViewById(R.id.pager);
-        prevImage = (ImageView) root.findViewById(R.id.prevImage);
-        nextImage = (ImageView) root.findViewById(R.id.nextImage);
         favorite = (ToggleButton) root.findViewById(R.id.favorite);
 
         listener = new CompoundButton.OnCheckedChangeListener() {
@@ -131,25 +117,7 @@ public class FullPhotoFragment extends Fragment {
                     favorite.setChecked(false);
                 }
                 favorite.setOnCheckedChangeListener(listener);
-                String img_url;
-                Photo image;
-                if (position > 0) {
-                    image = images.get(position - 1);
-                    Resources res = getResources();
-                    img_url = String.format(res.getString(R.string.download), image.getFarm(), image.getServer(), image.getId(), image.getSecret(), "h");
-                    imageDisplayer(img_url, prevImage, null);
-
-                } else {
-                    prevImage.setImageDrawable(null);
-                }
-                if (position < images.size() - 1) {
-                    image = images.get(position + 1);
-                    Resources res = getResources();
-                    img_url = String.format(res.getString(R.string.download), image.getFarm(), image.getServer(), image.getId(), image.getSecret(), "h");
-                    imageDisplayer(img_url, nextImage, null);
-                } else {
-                    nextImage.setImageDrawable(null);
-                }
+//                loadPrevNext(position);
             }
 
             @Override
@@ -165,14 +133,14 @@ public class FullPhotoFragment extends Fragment {
         return root;
     }
 
+
     @Override
     public void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
-
         pager.setAdapter(adapter);
         pager.setPageTransformer(false, new ParallaxPageTransformer());
-        get(RECENTS, Photos.class);
+        search.get(FlickrSearches.RECENTS, Photos.class);
     }
 
     @Override
@@ -197,13 +165,19 @@ public class FullPhotoFragment extends Fragment {
     }
 
     public void onEvent(SearchEvent event) {
-        String busqueda = String.format(Locale.getDefault(), SEARCHTAG, event.busqueda);
-        Log.d("Busqueda tag", busqueda);
-        get(busqueda, Photos.class);
+        if(event.photos==null) {
+            String busqueda = String.format(Locale.getDefault(), FlickrSearches.SEARCHTAG, event.busqueda);
+            Log.d("Busqueda tag", busqueda);
+            search.get(busqueda, Photos.class);
+        } else {
+            images.clear();
+            images.addAll(event.photos.getPhotos().getPhoto());
+            handler.sendEmptyMessage(0);
+        }
     }
 
     private void reload() {
-        get(RECENTS, Photos.class);
+        search.get(FlickrSearches.RECENTS, Photos.class);
     }
 
     private void imageDisplayer(String url, ImageView view, final ProgressBar loading) {
@@ -250,52 +224,6 @@ public class FullPhotoFragment extends Fragment {
         });
     }
 
-    private void get(String url, final Class<?> clase) {
-        Request request = new Request.Builder()
-                .url(url)
-                .header("User-Agent", "OkHttp Headers.java")
-                .addHeader("Accept", "application/json; q=0.5")
-                .build();
-
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Request request, IOException e) {
-
-            }
-
-            @Override
-            public void onResponse(Response response) throws IOException {
-                switch (response.code()) {
-                    case 200:
-
-                        String string = response.body().string();
-                        if (clase != null) {
-                            Gson gson = new Gson();
-                            Log.d("Resultado", string);
-
-                            try {
-                                photos = (Photos) gson.fromJson(string, clase);
-                                images.clear();
-                                //handler.sendEmptyMessage(0);
-                                images.addAll(photos.getPhotos().getPhoto());
-                                handler.sendEmptyMessage(1);
-                            } catch (JsonSyntaxException | IllegalStateException e) {
-                                e.printStackTrace();
-
-                            }
-
-                        }
-
-                        break;
-                    default:
-
-                        break;
-                }
-
-            }
-        });
-    }
 
     private class ImageAdapter extends PagerAdapter {
 
