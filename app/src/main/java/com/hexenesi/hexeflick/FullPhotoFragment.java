@@ -268,27 +268,29 @@ public class FullPhotoFragment extends Fragment {
             public void onResponse(Response response) throws IOException {
                 switch (response.code()) {
                     case 200:
+
+                        String string = response.body().string();
+                        if (clase != null) {
+                            Gson gson = new Gson();
+                            Log.d("Resultado", string);
+
+                            try {
+                                photos = (Photos) gson.fromJson(string, clase);
+                                images.clear();
+                                //handler.sendEmptyMessage(0);
+                                images.addAll(photos.getPhotos().getPhoto());
+                                handler.sendEmptyMessage(1);
+                            } catch (JsonSyntaxException | IllegalStateException e) {
+                                e.printStackTrace();
+
+                            }
+
+                        }
+
                         break;
                     default:
 
                         break;
-                }
-                String string = response.body().string();
-                if (clase != null) {
-                    Gson gson = new Gson();
-                    Log.d("Resultado", string);
-
-                    try {
-                        photos = (Photos) gson.fromJson(string, clase);
-                        images.clear();
-                        //handler.sendEmptyMessage(0);
-                        images.addAll(photos.getPhotos().getPhoto());
-                        handler.sendEmptyMessage(1);
-                    } catch (JsonSyntaxException | IllegalStateException e) {
-                        e.printStackTrace();
-
-                    }
-
                 }
 
             }
