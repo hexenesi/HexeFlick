@@ -12,9 +12,9 @@ public class ParallaxPageTransformer implements ViewPager.PageTransformer {
         int pageWidth = view.getWidth();
         int pageHeight = view.getHeight();
         View view1 = view.findViewById(R.id.imagen);
-        float scale = position < 0 ? 1f + position : 1f - position;
-        view1.setScaleX(scale);
-        view1.setScaleY(scale);
+        //float scale = position < 0 ? 1f + position : 1f - position;
+        //view1.setScaleX(scale);
+        //view1.setScaleY(scale);
 
         if (position < -1) { // [-Infinity,-1)
             // This page is way off-screen to the left.
@@ -24,7 +24,7 @@ public class ParallaxPageTransformer implements ViewPager.PageTransformer {
 
 
             view1.setTranslationX(-position * (pageWidth / 2)); //Half the normal speed
-            view1.setTranslationY(-Math.abs(position) * (pageHeight / 2));
+            //view1.setTranslationY(-Math.abs(position) * (pageHeight / 2));
 
         } else { // (1,+Infinity]
             // This page is way off-screen to the right.
