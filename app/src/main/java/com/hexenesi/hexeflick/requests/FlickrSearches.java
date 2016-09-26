@@ -45,7 +45,6 @@ public class FlickrSearches {
             public void onResponse(Response response) throws IOException {
                 switch (response.code()) {
                     case 200:
-
                         String string = response.body().string();
                         if (clase != null) {
                             Gson gson = new Gson();
@@ -53,14 +52,10 @@ public class FlickrSearches {
                                 EventBus.getDefault().post(new SearchEvent(gson.fromJson(string,Photos.class)));
                             } catch (JsonSyntaxException | IllegalStateException e) {
                                 e.printStackTrace();
-
                             }
-
                         }
-
                         break;
                     default:
-
                         break;
                 }
 

@@ -90,7 +90,7 @@ public class FullPhotoFragment extends Fragment {
                     images.get(pager.getCurrentItem()).save();
                 } else {
                     images.get(pager.getCurrentItem()).delete();
-                    images.remove(pager.getCurrentItem());
+                    //images.remove(pager.getCurrentItem());
                     adapter.notifyDataSetChanged();
                 }
             }
