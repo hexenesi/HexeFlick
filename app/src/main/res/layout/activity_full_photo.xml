@@ -9,29 +9,13 @@
         android:layout_height="match_parent"
         android:background="@null" />
 
-    <ImageView
-        android:id="@+id/prevImage"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true" />
-
-    <ImageView
-        android:id="@+id/nextImage"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true" />
-
 
     <ToggleButton
         android:id="@+id/favorite"
         android:layout_width="30dp"
         android:layout_height="32dp"
-        android:layout_centerHorizontal="true"
         android:background="@android:drawable/btn_star"
         android:textOff=""
-        android:textOn="" />
-
+        android:textOn=""/>
 
 </RelativeLayout>
