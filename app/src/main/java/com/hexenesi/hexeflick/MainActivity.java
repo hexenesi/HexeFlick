@@ -63,14 +63,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //Inicializar la base de datos
-        AndroidInitializeConfig config = new AndroidInitializeConfig(getApplicationContext());
         ArrayList<Class<? extends Rush>> classes = new ArrayList<>();
         classes.add(Photo.class);
-        config.setClasses(classes);
+        //Inicializar la base de datos
+        AndroidInitializeConfig config = new AndroidInitializeConfig(getApplicationContext(), classes);
         RushCore.initialize(config);
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
